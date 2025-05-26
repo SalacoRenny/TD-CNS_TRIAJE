@@ -1,0 +1,76 @@
+    {
+        "users": [
+            {
+                "userId": "user001",
+                "name": "Juan P\u00e9rez",
+                "email": "juan@example.com",
+                "ci": "91191",
+                "role": "asegurado",
+                "password": "hashedpassword123",
+                "createdAt": {
+                    "$date": "2025-05-19T15:00:00Z"
+                }
+            }
+        ],
+    "symptomrecords": [
+        {
+            "userId": "user001",
+            "symptoms": [
+                "tos",
+                "fiebre"
+            ],
+            "baseConditions": [
+                "diabetes"
+            ],
+            "notes": "Inici\u00f3 hace 2 d\u00edas, tengo insomnio y no puedo dormir bien",
+            "createdAt": {
+                "$date": "2025-05-19T15:20:00Z"
+            }
+        }
+    ],
+    "clinicalhistory": [
+        {
+            "userId": "user001",
+            "records": [
+                {
+                    "diagnosis": "Gripe com\u00fan",
+                    "specialty": "Medicina general",
+                    "date": {
+                        "$date": "2025-05-17T10:00:00Z"
+                    },
+                    "notes": "Paciente con s\u00edntomas leves. Se recomienda reposo."
+                }
+            ]
+        }
+    ],
+    "interactions": [
+        {
+            "userId": "user001",
+            "message": "Tengo fiebre desde anoche.",
+            "sender": "asegurado",
+            "timestamp": {
+                "$date": "2025-05-19T15:10:00Z"
+            }
+        }
+    ],
+    "specialties": [
+        {
+            "name": "Medicina general",
+            "description": "Diagn\u00f3stico y tratamiento de condiciones generales de salud.",
+            "keywords": [
+                "fiebre",
+                "dolor",
+                "revisi\u00f3n"
+            ]
+        },
+        {
+            "name": "Pediatr\u00eda",
+            "description": "Atenci\u00f3n m\u00e9dica especializada para ni\u00f1os.",
+            "keywords": [
+                "ni\u00f1os",
+                "vacunas",
+                "crecimiento"
+            ]
+        }
+    ]
+}
