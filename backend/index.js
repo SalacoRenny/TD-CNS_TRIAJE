@@ -1,82 +1,68 @@
-import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
+// backend/index.js
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
 
-// Modelos
-import SymptomRecord from "./src/models/SymptomRecord.js";
-import User from "./src/models/User.js";
+// Importar rutas
+import authRoutes from './src/routes/authRoutes.js';
+import symptomRoutes from './src/routes/symptomRoutes.js';
+import medicalRoutes from './src/routes/medicalRoutes.js';
 
-// Rutas
-import authRoutes from "./src/routes/authRoutes.js";
-import symptomRoutes from "./src/routes/symptomRoutes.js";
-
+// Configuración
 dotenv.config();
-
 const app = express();
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Logging middleware (opcional pero útil)
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+// Rutas
+app.use('/api/auth', authRoutes);
+app.use('/api/symptoms', symptomRoutes);
+app.use('/api/medical', medicalRoutes); // Nueva ruta para personal médico
+
+// Ruta de prueba
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'API CNS Triaje funcionando correctamente',
+    version: '1.0.0'
+  });
+});
+
+// Manejo de rutas no encontradas
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false,
+    message: 'Ruta no encontrada' 
+  });
+});
+
+// Manejo de errores global
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    success: false,
+    message: 'Error interno del servidor',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Error del servidor'
+  });
+});
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ Conectado a MongoDB Atlas"))
-  .catch((err) => console.error("❌ Error de conexión:", err));
+  .then(() => console.log('✅ MongoDB conectado exitosamente'))
+  .catch(err => console.error('❌ Error conectando a MongoDB:', err));
 
-// Ruta para registrar síntomas
-app.post("/api/symptoms", async (req, res) => {
-  try {
-    const newRecord = new SymptomRecord(req.body);
-    const saved = await newRecord.save();
-    res.status(201).json({ message: "Síntomas registrados", data: saved });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Ruta para registrar usuarios
-app.post("/api/users", async (req, res) => {
-  try {
-    const newUser = new User(req.body);
-    const saved = await newUser.save();
-    res.status(201).json({ message: "Usuario registrado", data: saved });
-  } catch (err) {
-    console.error("❌ Error en registro:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Ruta de login
-app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Contraseña incorrecta" });
-
-    console.log("🟢 Usuario encontrado y autenticado:", user);
-
-    res.status(200).json({
-      id: user.userId,
-      fullName: user.name,
-      email: user.email,
-      ci: user.ci,
-      role: user.role
-    });
-  } catch (err) {
-    console.error("❌ Error en login:", err);
-    res.status(500).json({ message: "Error del servidor" });
-  }
-});
-
-// Rutas de síntomas
-app.use("/api/symptom-records", symptomRoutes);
-
-const PORT = process.env.PORT || 5000;
+// Iniciar servidor
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🌐 Servidor backend corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  console.log(`📍 Entorno: ${process.env.NODE_ENV || 'development'}`);
 });
