@@ -289,6 +289,3 @@ const SymptomForm = () => {
 };
 
 export default SymptomForm;
-
-
-//todo lo avanzado es funcional, queda quitar el navbar del inicio de sesión y del registro de sesion, mejorar los elementos del navbar.
