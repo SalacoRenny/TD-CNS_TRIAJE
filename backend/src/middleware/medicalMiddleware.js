@@ -1,42 +1,47 @@
-// backend/src/middleware/medicalMiddleware.js
+// medicalMiddleware.js
 import User from '../models/User.js';
 
 export default async (req, res, next) => {
   try {
-    // Verificar que el usuario existe y es personal médico
-    const user = await User.findById(req.userId);
+    console.log('🔍 Middleware ejecutándose');
+    console.log('🔍 Headers recibidos:', req.headers['x-user-id'], req.headers['x-user-role']);
+    
+    const userId = req.headers['x-user-id'];
+    
+    if (!userId) {
+      console.log('❌ No hay x-user-id');
+      return res.status(401).json({ 
+        success: false,
+        message: 'No hay x-user-id header' 
+      });
+    }
+
+    console.log('🔍 Buscando usuario:', userId);
+    const user = await User.findOne({ userId: userId });
+    console.log('🔍 Usuario encontrado:', user ? 'SÍ' : 'NO');
     
     if (!user) {
+      console.log('❌ Usuario no existe en DB');
       return res.status(404).json({ 
         success: false,
         message: 'Usuario no encontrado' 
       });
     }
 
-    if (user.userType !== 'personal_medico') {
+    console.log('🔍 Role del usuario:', user.role);
+    if (user.role !== 'personal_medico') {
+      console.log('❌ Role incorrecto');
       return res.status(403).json({ 
         success: false,
-        message: 'Acceso denegado. Solo personal médico autorizado.' 
+        message: 'No es personal médico' 
       });
     }
 
-    // Agregar información del usuario a la request
-    req.user = {
-      id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      userType: user.userType,
-      medicalRole: user.medicalRole,
-      specialty: user.specialty
-    };
-
+    console.log('✅ Usuario autorizado');
+    req.user = user;
     next();
   } catch (error) {
-    console.error('Error en medicalMiddleware:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Error en la verificación de permisos',
-      error: error.message 
-    });
+    console.error('❌ Error en middleware:', error);
+    res.status(500).json({ error: error.message });
   }
 };

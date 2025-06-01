@@ -1,5 +1,3 @@
-// frontend/src/App.jsx
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import RegisterSymptoms from "./components/RegisterSymptoms";
@@ -7,7 +5,7 @@ import RegisterUserForm from "./components/RegisterUserForm";
 import LoginUserForm from "./components/LoginUserForm";
 import SymptomHistory from "./components/SymptomHistory";
 import HomeAs from "./pages/HomeAs";
-import MedicalDashboard from "./components/MedicalDashboard.jsx";
+import HomeMedical from "./pages/HomeMedical";
 import { useUser } from "./context/UserContext";
 
 // 🔐 Solo permite acceder si hay sesión activa
@@ -16,18 +14,32 @@ const ProtectedRoute = ({ children }) => {
   return user ? children : <Navigate to="/login" replace />;
 };
 
-// 🚫 Evita acceder si ya hay sesión (para login/registro)
+// ✨ Solo para personal médico
+const MedicalRoute = ({ children }) => {
+  const { user } = useUser();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== 'personal_medico') {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+// 🚫 Evita acceder si ya hay sesión
 const PublicOnlyRoute = ({ children }) => {
   const { user } = useUser();
   return user ? <Navigate to="/" replace /> : children;
 };
 
-// ✅ Función principal App
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Rutas SIN navbar (fuera de Layout) */}
+        {/* Rutas públicas (sin Layout) */}
         <Route
           path="/login"
           element={
@@ -46,49 +58,47 @@ function App() {
           }
         />
 
-        {/* Rutas CON navbar (dentro de Layout) */}
+        {/* Dashboard médico (sin Layout) */}
         <Route
-          path="/*"
+          path="/medical-dashboard"
           element={
-            <Layout>
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <HomeAs />
-                    </ProtectedRoute>
-                  }
-                />
+            <MedicalRoute>
+              <HomeMedical />
+            </MedicalRoute>
+          }
+        />
 
-                <Route
-                  path="/history"
-                  element={
-                    <ProtectedRoute>
-                      <SymptomHistory />
-                    </ProtectedRoute>
-                  }
-                />
+        {/* Rutas con Layout */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <HomeAs />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
-                <Route
-                  path="/registersymp"
-                  element={
-                    <ProtectedRoute>
-                      <RegisterSymptoms />
-                    </ProtectedRoute>
-                  }
-                />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SymptomHistory />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
-                <Route
-                  path="/medical/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <MedicalDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </Layout>
+        <Route
+          path="/registersymp"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <RegisterSymptoms />
+              </Layout>
+            </ProtectedRoute>
           }
         />
       </Routes>
@@ -97,3 +107,6 @@ function App() {
 }
 
 export default App;
+
+
+//funcional, ver la parte de la pestaña de pacientes.

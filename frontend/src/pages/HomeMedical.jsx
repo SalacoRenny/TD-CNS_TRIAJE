@@ -7,6 +7,19 @@ const HomeMedical = () => {
   const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
 
+  // ✅ DEBUG - Agregar estos logs
+  console.log('🔍 USER COMPLETO en HomeMedical:', user);
+  console.log('🔍 user.name:', user?.name);
+  console.log('🔍 Todas las propiedades:', Object.keys(user || {}));
+  
+  // ✅ DEBUG - Verificar localStorage directamente
+  const userFromStorage = localStorage.getItem('cnsUser');
+  console.log('🔍 localStorage cnsUser:', userFromStorage);
+  if (userFromStorage) {
+    console.log('🔍 Parsed from storage:', JSON.parse(userFromStorage));
+  }
+
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -95,16 +108,16 @@ const HomeMedical = () => {
                 </button>
               </div>
 
-              {/* User Profile */}
+              {/* User Profile - SOLUCIÓN FINAL */}
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
-                    {user.name?.charAt(0).toUpperCase() || 'M'}
+                    {(user?.fullName || user?.name)?.charAt(0).toUpperCase() || 'U'}
                   </span>
                 </div>
                 <div className="hidden md:block">
                   <p className="text-sm font-medium text-slate-800">
-                    Dr. {user.name}
+                    Dr. {user?.fullName || user?.name || 'Usuario'}
                   </p>
                   <p className="text-xs text-slate-500">Personal Médico</p>
                 </div>
@@ -132,3 +145,7 @@ const HomeMedical = () => {
 };
 
 export default HomeMedical;
+
+
+
+//todo funcional , menos el navbar
