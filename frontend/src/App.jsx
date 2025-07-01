@@ -1,11 +1,14 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
+import MedicalLayout from "./components/medical/MedicalLayout";
 import RegisterSymptoms from "./components/RegisterSymptoms";
 import RegisterUserForm from "./components/RegisterUserForm";
 import LoginUserForm from "./components/LoginUserForm";
 import SymptomHistory from "./components/SymptomHistory";
 import HomeAs from "./pages/HomeAs";
-import HomeMedical from "./pages/HomeMedical";
+import MedicalDashboard from "./components/medical/MedicalDashboard";
+import PatientList from "./components/medical/PatientList";
+import MedicalReports from "./components/medical/MedicalReports";
 import { useUser } from "./context/UserContext";
 
 // 🔐 Solo permite acceder si hay sesión activa
@@ -29,10 +32,40 @@ const MedicalRoute = ({ children }) => {
   return children;
 };
 
-// 🚫 Evita acceder si ya hay sesión
+// 👤 Solo para asegurados
+const PatientRoute = ({ children }) => {
+  const { user } = useUser();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== 'asegurado') {
+    return <Navigate to="/medical-dashboard" replace />;
+  }
+
+  return children;
+};
+
+// 🚫 CORREGIDO: Redirección inteligente por rol
 const PublicOnlyRoute = ({ children }) => {
   const { user } = useUser();
-  return user ? <Navigate to="/" replace /> : children;
+  
+  if (!user) {
+    return children; // No hay usuario, mostrar la página pública
+  }
+
+  // ✅ REDIRIGIR SEGÚN EL ROL DEL USUARIO
+  switch (user.role) {
+    case 'personal_medico':
+      return <Navigate to="/medical-dashboard" replace />;
+    case 'asegurado':
+      return <Navigate to="/" replace />;
+    case 'admin':
+      return <Navigate to="/admin-dashboard" replace />;
+    default:
+      return <Navigate to="/" replace />;
+  }
 };
 
 function App() {
@@ -58,55 +91,105 @@ function App() {
           }
         />
 
-        {/* Dashboard médico (sin Layout) */}
+        {/* 🏥 RUTAS MÉDICAS - Con protección específica */}
         <Route
           path="/medical-dashboard"
           element={
             <MedicalRoute>
-              <HomeMedical />
+              <MedicalLayout>
+                <MedicalDashboard />
+              </MedicalLayout>
             </MedicalRoute>
           }
         />
 
-        {/* Rutas con Layout */}
+        <Route
+          path="/medical-patients"
+          element={
+            <MedicalRoute>
+              <MedicalLayout>
+                <PatientList />
+              </MedicalLayout>
+            </MedicalRoute>
+          }
+        />
+
+        {/* 🔮 RUTAS FUTURAS PARA SISTEMA MÉDICO */}
+        <Route
+          path="/medical-reports"
+          element={
+            <MedicalRoute>
+              <MedicalLayout>
+                <MedicalReports />
+              </MedicalLayout>
+            </MedicalRoute>
+          }
+        />
+
+        {/* 👥 Rutas con Layout (solo para asegurados) */}
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+            <PatientRoute>
               <Layout>
                 <HomeAs />
               </Layout>
-            </ProtectedRoute>
+            </PatientRoute>
           }
         />
 
         <Route
           path="/history"
           element={
-            <ProtectedRoute>
+            <PatientRoute>
               <Layout>
                 <SymptomHistory />
               </Layout>
-            </ProtectedRoute>
+            </PatientRoute>
           }
         />
 
         <Route
           path="/registersymp"
           element={
-            <ProtectedRoute>
+            <PatientRoute>
               <Layout>
                 <RegisterSymptoms />
               </Layout>
-            </ProtectedRoute>
+            </PatientRoute>
           }
+        />
+
+        {/* 🔄 Ruta de redirección inteligente para usuarios autenticados */}
+        <Route
+          path="/dashboard"
+          element={<SmartRedirect />}
         />
       </Routes>
     </Router>
   );
 }
 
+// 🎯 Componente para redirección inteligente
+const SmartRedirect = () => {
+  const { user } = useUser();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  switch (user.role) {
+    case 'personal_medico':
+      return <Navigate to="/medical-dashboard" replace />;
+    case 'asegurado':
+      return <Navigate to="/" replace />;
+    case 'admin':
+      return <Navigate to="/admin-dashboard" replace />;
+    default:
+      return <Navigate to="/" replace />;
+  }
+};
+
 export default App;
 
-
-//funcional, ver la parte de la pestaña de pacientes.
+//Totalmente funcional. Revisar detalles.

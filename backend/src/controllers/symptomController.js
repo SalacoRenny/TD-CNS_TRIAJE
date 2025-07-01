@@ -1,3 +1,5 @@
+//SYMPTOM CONTROLLER SCRIPT
+
 import SymptomRecord from "../models/SymptomRecord.js";
 
 // Crear nuevo registro de síntomas

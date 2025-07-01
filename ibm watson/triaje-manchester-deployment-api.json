@@ -1,0 +1,241 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Triaje Manchester Deployment API",
+    "version": "1.0.0",
+    "description": "API para sistema de triaje médico Manchester usando deployment específico de watsonx.ai"
+  },
+  "servers": [
+    {
+      "url": "https://us-south.ml.cloud.ibm.com"
+    }
+  ],
+  "paths": {
+    "/ml/v1/deployments/dbd59691-caf4-47b0-ba96-b1a5b6a551e8/text/generation": {
+      "post": {
+        "summary": "Clasificar síntomas según Protocolo Manchester",
+        "description": "Clasifica síntomas médicos en niveles de urgencia usando el deployment específico",
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2021-05-01"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "prompt_variables": {
+                        "type": "object",
+                        "properties": {
+                          "sintoma_principal": {
+                            "type": "string",
+                            "description": "Síntoma principal del paciente"
+                          },
+                          "detalles_sintomas": {
+                            "type": "string", 
+                            "description": "Detalles adicionales de los síntomas"
+                          }
+                        },
+                        "required": ["sintoma_principal", "detalles_sintomas"]
+                      },
+                      "max_new_tokens": {
+                        "type": "integer",
+                        "default": 50
+                      },
+                      "min_new_tokens": {
+                        "type": "integer",
+                        "default": 10
+                      },
+                      "stop_sequences": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "default": ["\n", "NIVEL"]
+                      },
+                      "decoding_method": {
+                        "type": "string",
+                        "default": "greedy"
+                      },
+                      "repetition_penalty": {
+                        "type": "number",
+                        "default": 1.1
+                      }
+                    },
+                    "required": ["prompt_variables"]
+                  }
+                },
+                "required": ["parameters"]
+              },
+              "example": {
+                "parameters": {
+                  "prompt_variables": {
+                    "sintoma_principal": "convulsiones",
+                    "detalles_sintomas": "episodios repetitivos, recupera conciencia lentamente"
+                  },
+                  "max_new_tokens": 20,
+                  "min_new_tokens": 10,
+                  "stop_sequences": ["\n", "NIVEL"],
+                  "decoding_method": "greedy",
+                  "repetition_penalty": 1.1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Clasificación exitosa del triaje Manchester",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "body": {
+                      "type": "object",
+                      "properties": {
+                        "model_id": {
+                          "type": "string",
+                          "example": "meta-llama/llama-3-3-70b-instruct"
+                        },
+                        "model_version": {
+                          "type": "string",
+                          "example": "3.3.0"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-06-25T03:31:22.770Z"
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "generated_text": {
+                                "type": "string",
+                                "description": "Clasificación del triaje Manchester",
+                                "example": " NIVEL 1-ROJO-NEUROLOGÍA\n"
+                              },
+                              "generated_token_count": {
+                                "type": "integer",
+                                "example": 16
+                              },
+                              "input_token_count": {
+                                "type": "integer", 
+                                "example": 426
+                              },
+                              "stop_reason": {
+                                "type": "string",
+                                "example": "stop_sequence"
+                              }
+                            },
+                            "required": ["generated_text"]
+                          }
+                        },
+                        "system": {
+                          "type": "object",
+                          "properties": {
+                            "warnings": {
+                              "type": "array",
+                              "items": {
+                                "type": "object"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "required": ["results"]
+                    },
+                    "clasificacion_limpia": {
+                      "type": "string",
+                      "description": "Texto de clasificación limpio y procesado",
+                      "example": "NIVEL 1-ROJO-NEUROLOGÍA"
+                    }
+                  },
+                  "required": ["status", "body"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token de autenticación IBM Cloud IAM"
+      }
+    }
+  }
+}

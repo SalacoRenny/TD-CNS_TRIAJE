@@ -34,6 +34,30 @@ const LoginUserForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ FUNCIÓN PARA REDIRIGIR POR ROL
+  const redirectByRole = (userRole) => {
+    console.log("🔄 Redirigiendo usuario con rol:", userRole);
+    
+    switch (userRole) {
+      case 'personal_medico':
+        console.log("👨‍⚕️ Redirigiendo a dashboard médico");
+        navigate("/medical-dashboard");
+        break;
+      case 'asegurado':
+        console.log("👤 Redirigiendo a dashboard de asegurado");
+        navigate("/patient-dashboard"); // o la ruta que uses para asegurados
+        break;
+      case 'admin':
+        console.log("👑 Redirigiendo a dashboard de administrador");
+        navigate("/admin-dashboard"); // si tienes panel de admin
+        break;
+      default:
+        console.log("❓ Rol desconocido, redirigiendo a home");
+        navigate("/");
+        break;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -50,12 +74,17 @@ const LoginUserForm = () => {
         role: userData.role
       });
 
+      // ✅ GUARDAR USUARIO EN CONTEXTO
       setUser(userData);
       console.log("✅ Usuario guardado:", userData);
-      navigate("/");
+      
+      // ✅ REDIRIGIR SEGÚN EL ROL
+      redirectByRole(userData.role);
+      
       setMessage("✅ Inicio de sesión exitoso");
       console.log("Usuario autenticado:", res.data);
     } catch (err) {
+      console.error("❌ Error en login:", err);
       setMessage("❌ Credenciales incorrectas");
     } finally {
       setLoading(false);

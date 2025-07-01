@@ -1,4 +1,3 @@
-//index.js:
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -13,6 +12,7 @@ import User from "./src/models/User.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import symptomRoutes from "./src/routes/symptomRoutes.js";
 import medicalRoutes from "./src/routes/medicalRoutes.js";
+import patientRoutes from "./src/routes/patientRoutes.js"; // 🆕 NUEVA RUTA
 
 dotenv.config();
 
@@ -26,11 +26,27 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ Conectado a MongoDB Atlas"))
   .catch((err) => console.error("❌ Error de conexión:", err));
 
+// ✅ RUTAS ORIGINALES (mantener funcionando)
 // Ruta para registrar síntomas
 app.post("/api/symptoms", async (req, res) => {
   try {
     const newRecord = new SymptomRecord(req.body);
     const saved = await newRecord.save();
+    
+    // 🆕 Actualizar estado del usuario a "con_historial"
+    try {
+      await User.findOneAndUpdate(
+        { userId: req.body.userId },
+        { 
+          status: "con_historial",
+          lastTriageDate: new Date(),
+          updatedAt: new Date()
+        }
+      );
+    } catch (userUpdateError) {
+      console.log("⚠️ No se pudo actualizar estado del usuario:", userUpdateError.message);
+    }
+    
     res.status(201).json({ message: "Síntomas registrados", data: saved });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -75,7 +91,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// Cargar rutas del sistema
+// ✅ CARGAR TODAS LAS RUTAS DEL SISTEMA
 console.log("🟡 Cargando rutas de autenticación...");
 app.use("/api/auth", authRoutes);
 
@@ -85,19 +101,23 @@ app.use("/api/symptom-records", symptomRoutes);
 console.log("🟡 Cargando rutas médicas...");
 app.use("/api/medical", medicalRoutes);
 
+console.log("🆕 Cargando rutas de pacientes...");
+app.use("/api/patients", patientRoutes); // 🆕 NUEVA FUNCIONALIDAD
+
 // Ruta de salud del sistema
 app.get("/api/health", (req, res) => {
   res.json({ 
     status: "OK", 
     message: "Sistema de Triaje CNS funcionando correctamente",
     timestamp: new Date().toISOString(),
-    version: "1.0.0",
+    version: "1.0.1", // 🆕 Actualizada
     endpoints: {
       symptoms: "/api/symptoms",
       users: "/api/users", 
       auth: "/api/auth",
       records: "/api/symptom-records",
-      medical: "/api/medical"
+      medical: "/api/medical",
+      patients: "/api/patients" // 🆕 NUEVA
     }
   });
 });
@@ -114,6 +134,12 @@ app.use("*", (req, res) => {
       "GET /api/medical/dashboard-stats",
       "GET /api/medical/records",
       "GET /api/medical/urgency-analysis",
+      "GET /api/patients",          // 🆕
+      "GET /api/patients/stats",    // 🆕
+      "GET /api/patients/:id",      // 🆕
+      "POST /api/patients",         // 🆕
+      "PUT /api/patients/:id",      // 🆕
+      "DELETE /api/patients/:id",   // 🆕
       "GET /api/health"
     ]
   });
@@ -130,6 +156,10 @@ app.listen(PORT, () => {
   console.log(`   📈 Estadísticas: http://localhost:${PORT}/api/medical/dashboard-stats`);
   console.log(`   📋 Registros: http://localhost:${PORT}/api/medical/records`);
   console.log(`   🚨 Análisis: http://localhost:${PORT}/api/medical/urgency-analysis`);
+  console.log(`\n👥 Gestión de Pacientes:`); // 🆕
+  console.log(`   📊 Estadísticas: http://localhost:${PORT}/api/patients/stats`);
+  console.log(`   📋 Lista: http://localhost:${PORT}/api/patients`);
+  console.log(`   👤 Detalle: http://localhost:${PORT}/api/patients/:id`);
   console.log(`\n❤️  Estado del sistema: http://localhost:${PORT}/api/health`);
   console.log(`\n✅ Sistema listo para recibir peticiones!\n`);
 });
