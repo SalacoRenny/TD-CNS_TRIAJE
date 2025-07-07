@@ -6,6 +6,7 @@ import RegisterUserForm from "./components/RegisterUserForm";
 import LoginUserForm from "./components/LoginUserForm";
 import SymptomHistory from "./components/SymptomHistory";
 import HomeAs from "./pages/HomeAs";
+import ChatTriagePage from "./pages/ChatTriagePage"; // 🆕 NUEVA PÁGINA
 import MedicalDashboard from "./components/medical/MedicalDashboard";
 import PatientList from "./components/medical/PatientList";
 import MedicalReports from "./components/medical/MedicalReports";
@@ -160,6 +161,16 @@ function App() {
           }
         />
 
+        {/* 🆕 NUEVA RUTA: CHAT MÉDICO WATSON IA */}
+        <Route
+          path="/chat-triage"
+          element={
+            <PatientRoute>
+              <ChatTriagePage />
+            </PatientRoute>
+          }
+        />
+
         {/* 🔄 Ruta de redirección inteligente para usuarios autenticados */}
         <Route
           path="/dashboard"
@@ -192,4 +203,4 @@ const SmartRedirect = () => {
 
 export default App;
 
-//Totalmente funcional. Revisar detalles.
+//Totalmente funcional. Chat Watson IA integrado.
