@@ -1,0 +1,22 @@
+# Node
+node_modules/
+**/node_modules/
+.pnpm-store/
+
+# Puppeteer / Chromium
+**/.local-chromium/
+**/chrome-win/
+**/*.dll
+**/*.exe
+
+# Entornos
+.env
+.env.*
+.env.local
+
+# Builds / logs
+dist/
+build/
+.out/
+coverage/
+*.log
